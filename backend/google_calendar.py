@@ -1,6 +1,5 @@
 import logging
 import os
-import traceback
 
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
@@ -56,33 +55,10 @@ def get_authorization_url() -> str:
 def exchange_code_for_token(code: str) -> None:
     flow = _build_flow()
 
-    logger.error("=== DEBUG OAuth token exchange ===")
-    logger.error("redirect_uri utilisé pour l'échange : %r", REDIRECT_URI)
-    logger.error("code reçu (longueur=%d) : %r", len(code), code)
-
     try:
         flow.fetch_token(code=code)
-    except Exception as exc:
-        logger.error("Échec de l'échange de code OAuth Google.")
-        logger.error("Type d'exception : %s", type(exc).__module__ + "." + type(exc).__name__)
-        logger.error("str(exc) : %s", exc)
-
-        # oauthlib.oauth2.rfc6749.errors.OAuth2Error expose souvent ces attributs
-        for attr in ("error", "description", "status_code", "uri"):
-            if hasattr(exc, attr):
-                logger.error("exc.%s = %r", attr, getattr(exc, attr))
-
-        # certaines erreurs (requests.HTTPError) portent la réponse HTTP brute
-        response = getattr(exc, "response", None)
-        if response is not None:
-            logger.error("Google HTTP status : %s", getattr(response, "status_code", "?"))
-            try:
-                logger.error("Google response body : %s", response.text)
-            except Exception:
-                logger.error("Impossible de lire response.text")
-
-        logger.error("Traceback complet :\n%s", traceback.format_exc())
-        logger.error("=== FIN DEBUG ===")
+    except Exception:
+        logger.error("Échec de l'échange de code OAuth Google.", exc_info=True)
         raise
 
     creds = flow.credentials
@@ -160,3 +136,4 @@ def create_calendar_event(titre: str, description: str, date_debut: str, date_fi
         return service.events().insert(calendarId="primary", body=event).execute()
     except Exception as exc:
         raise CalendarError(f"Échec de la création de l'événement Google Calendar : {exc}") from exc
+    

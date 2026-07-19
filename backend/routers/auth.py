@@ -16,7 +16,6 @@ FRONTEND_URL = "http://localhost:5173"
 @router.get("/login")
 def google_login():
     url = google_calendar.get_authorization_url()
-    logger.error("URL d'autorisation générée : %s", url)
     return RedirectResponse(url)
 
 

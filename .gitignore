@@ -228,3 +228,4 @@ frontend/vite.log
 backend/google_credentials.json
 backend/google_token.json
 astrios-key.pem
+frontend/.env.production
